@@ -1,0 +1,8 @@
+.DS_Store
+.vscode
+tempCodeRunnerFile*
+a.out
+*.gch
+sdkconfig
+bin
+build
