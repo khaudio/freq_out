@@ -18,8 +18,6 @@ idf_component_register(
         log
 )
 
-list(APPEND LIBRARIES)
-
 target_compile_options(${COMPONENT_LIB}
     PRIVATE
         -Wall
@@ -35,9 +33,9 @@ target_compile_definitions(${COMPONENT_LIB}
 target_include_directories(${COMPONENT_LIB}
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/inc
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/DigitalFilters
 )
 
 target_link_libraries(${COMPONENT_LIB}
     PRIVATE
-        ${LIBRARIES}
 )

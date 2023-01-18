@@ -39,7 +39,7 @@ ESP32 I2S
 
 /* Audio sample rate */
 #ifndef SAMPLE_RATE
-#define SAMPLE_RATE                         48000
+#define SAMPLE_RATE                         SAMPLERATE_48K
 #endif
 
 /* Desired level of floating point precision */
@@ -54,15 +54,16 @@ ESP32 I2S
 
 #define INT_BIT_DEPTH                       (sizeof(INT_DATATYPE) * 8)
 
+#ifndef LPF_CUTOFF_FREQUENCY
+#define LPF_CUTOFF_FREQUENCY                100
+#endif
+
 /*                             Variables                            */
 
 /* I2S I/O Bus */
 static I2S::Bus i2s;
 
 /*                           Declarations                           */
-
-/* Low-pass filter */
-void low_pass_filter(FLOAT_DATATYPE* buff);
 
 /* Loop to ingest and set LTC using I2S */
 void i2s_input_output_loop(void);
@@ -71,11 +72,6 @@ void i2s_input_output_loop(void);
 extern "C" void app_main(void);
 
 /*                            Definitions                           */
-
-void low_pass_filter(FLOAT_DATATYPE* buff)
-{
-    /* Do filtering... */
-}
 
 void i2s_input_output_loop(void)
 {
@@ -90,11 +86,9 @@ void i2s_input_output_loop(void)
     /* float buffer for processing */
     FLOAT_DATATYPE floatBuffer[I2S_BUFFER_LENGTH];
 
-    // /* Signal polarity */
-    // bool polarity(1);
-
-    // /* Number of samples per zero-crossing (2x frequency) */
-    // int numSamples(0);
+    /* Low-pass filter */
+    constexpr FLOAT_DATATYPE dtUsed(1.0 / SAMPLE_RATE);
+    LowPassFilter3 lpf(dtUsed, 2 * M_PI * LPF_CUTOFF_FREQUENCY);
 
     while (true)
     {
@@ -104,23 +98,12 @@ void i2s_input_output_loop(void)
                 intBuffer,
                 I2S_BUFFER_LENGTH
             );
-        
-        // /* Detect zero-crossing */
-        // for (int i(0); i < I2S_BUFFER_LENGTH; ++i)
-        // {
-        //     ++numSamples;
-        //     if (
-        //             (polarity && floatBuffer[i] < 0)
-        //             || (!polarity && floatBuffer[i] > 0)
-        //         )
-        //     {
-        //         polarity = !polarity;
-        //         numSamples = 0;
-        //     }
-        // }
 
         /* Filter float values */
-        low_pass_filter(floatBuffer);
+        for (int i(0); i < I2S_BUFFER_LENGTH; ++i)
+        {
+            lpf.update(floatBuffer[i]);
+        }
 
         /* Convert processed samples back to int */
         float_to_int<FLOAT_DATATYPE, INT_DATATYPE>(
@@ -139,7 +122,9 @@ void i2s_input_output_loop(void)
 
 extern "C" void app_main(void)
 {
-    DEBUG_OUT("Starting freq_out...");
+    DEBUG_OUT("Starting freq_out...\n");
+    DEBUG_OUT("LPF cutoff frequency:\t");
+    DEBUG_OUT(LPF_CUTOFF_FREQUENCY << " hz\n");
 
     i2s.set_pin_master_clock(I2S_MCK);
     i2s.set_pin_bit_clock(I2S_BCK);
@@ -157,4 +142,3 @@ extern "C" void app_main(void)
 
     i2s_input_output_loop();
 }
-

@@ -5,6 +5,7 @@
 #include "discreettimebase.h"
 #include "espdelay.h"
 #include "espi2s.h"
+#include "DigitalFilters.h"
 
 #include <algorithm>
 #include <chrono>
