@@ -1,0 +1,3 @@
+[submodule "main/lib/DigitalFilters"]
+	path = main/lib/DigitalFilters
+	url = git@github.com:jimmyberg/DigitalFilters.git
